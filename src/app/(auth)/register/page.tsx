@@ -51,7 +51,7 @@ export default function RegisterPage(){
                 message: "Register berhasil.",
             });
             setTimeout(() => {
-                router.push("/auth/login");
+                router.push("/login");
             }, 1000);
         } catch (error: any) {
             setAlert({
@@ -66,10 +66,14 @@ export default function RegisterPage(){
 
     return(
         <>
-            <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold">
-                    Register
+            <div className="mb-10 text-center">
+                <h1 className="text-3xl font-bold text-slate-800">
+                    Create Account
                 </h1>
+
+                <p className="mt-2 text-slate-500">
+                    Buat akun baru dan mulai mengelola project Anda.
+                </p>
             </div>
 
             {
@@ -149,17 +153,31 @@ export default function RegisterPage(){
 
                 <Button
                     type="submit"
+                    className="w-full"
                     loading={isSubmitting}
                 >
                     Register
                 </Button>
             </form>
 
-            <p className="mt-5 text-center">
-                Sudah punya akun?
+            <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                </div>
+
+                <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-sm text-gray-500">
+                        atau
+                    </span>
+                </div>
+            </div>
+
+            <p className="mt-8 text-center text-sm text-slate-500">
+                Sudah memiliki akun?
+
                 <Link
-                    href="/auth/login"
-                    className="ml-2 text-blue-600"
+                    href="/login"
+                    className="ml-2 font-semibold text-blue-600 hover:text-blue-700"
                 >
                     Login
                 </Link>

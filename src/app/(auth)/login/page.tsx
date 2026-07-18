@@ -54,7 +54,7 @@ export default function LoginPage() {
                 message: "Login berhasil.",
             });
             setTimeout(() => {
-                router.push("/dashboard");
+                router.push("/projects");
             }, 1000);
         } catch (error: any) {
             setAlert({
@@ -69,12 +69,13 @@ export default function LoginPage() {
 
     return (
         <>
-            <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold">
-                    TaskFlow
-                </h1>
-                <p className="text-gray-500">
+            <div className="mb-10 text-center">
+                <h1 className="text-3xl font-bold text-slate-800">
                     Welcome Back 👋
+                </h1>
+
+                <p className="mt-2 text-slate-500">
+                    Login untuk melanjutkan ke Aplikasi.
                 </p>
             </div>
 
@@ -126,19 +127,33 @@ export default function LoginPage() {
 
                 <Button
                     type="submit"
+                    className="w-full"
                     loading={isSubmitting}
                 >
                     Login
                 </Button>
             </form>
 
-            <p className="mt-5 text-center">
+            <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                </div>
+
+                <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-sm text-gray-500">
+                        atau
+                    </span>
+                </div>
+            </div>
+
+            <p className="mt-8 text-center text-sm text-slate-500">
                 Belum punya akun?
+
                 <Link
-                    href="/auth/register"
-                    className="ml-2 text-blue-600"
+                    href="/register"
+                    className="ml-2 font-semibold text-blue-600 hover:text-blue-700"
                 >
-                    Register
+                    Daftar sekarang
                 </Link>
             </p>
         </>

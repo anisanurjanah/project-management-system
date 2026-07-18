@@ -1,4 +1,12 @@
-type Status = 'todo' | 'progress' | 'done';
+"use client";
+
+import {
+    Circle,
+    Loader2,
+    CheckCircle2,
+} from "lucide-react";
+
+type Status = "todo" | "progress" | "done";
 
 interface Props {
     status: Status;
@@ -9,18 +17,54 @@ export default function StatusBadge({
     status,
     onClick,
 }: Props) {
-    const color: Record<Status, string> = {
-        todo: "bg-gray-200 text-gray-700",
-        progress: "bg-yellow-200 text-yellow-700",
-        done: "bg-green-200 text-green-700",
+    const styles: Record<
+        Status,
+        {
+            label: string;
+            className: string;
+            icon: React.ReactNode;
+        }
+    > = {
+        todo: {
+            label: "Todo",
+            className:
+                "bg-slate-100 text-slate-700 border border-slate-200",
+            icon: <Circle size={14} />,
+        },
+        progress: {
+            label: "Progress",
+            className:
+                "bg-amber-100 text-amber-700 border border-amber-200",
+            icon: <Loader2 size={14} />,
+        },
+        done: {
+            label: "Done",
+            className:
+                "bg-emerald-100 text-emerald-700 border border-emerald-200",
+            icon: <CheckCircle2 size={14} />,
+        },
     };
 
-    return(
+    const item = styles[status];
+
+    return (
         <span
             onClick={onClick}
-            className={`cursor-pointer rounded-full px-3 py-1 text-sm ${color[status]}`}
+            className={`
+                inline-flex items-center gap-2
+                rounded-full px-3 py-1.5
+                text-xs font-medium
+                transition-all duration-200
+                ${item.className}
+                ${
+                    onClick
+                        ? "cursor-pointer hover:opacity-80"
+                        : "cursor-default"
+                }
+            `}
         >
-            {status}
+            {item.icon}
+            {item.label}
         </span>
-    )
+    );
 }

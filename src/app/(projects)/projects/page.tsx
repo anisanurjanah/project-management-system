@@ -11,6 +11,7 @@ import { useSearch } from "@/src/context/SearchContext";
 import Button from "@/src/components/Button";
 import Loading from "@/src/components/Loading";
 import ProjectCard from "@/src/components/ProjectCard";
+import ProjectModal from "@/src/components/ProjectModal";
 import TaskCard from "@/src/components/TaskCard";
 import TaskModal from "@/src/components/TaskModal";
 
@@ -25,24 +26,29 @@ type TaskStatus = "todo" | "progress" | "done";
 interface Task {
     id: number;
     title: string;
-    description: string | null;
+    description: string;
     status: TaskStatus;
 }
 
 export default function Project() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     const [loading, setLoading] = useState(true);
     const [loadingTask, setLoadingTask] = useState(false);
-    const [openModal, setOpenModal] = useState(false);
+    
+    const [openProjectModal, setOpenProjectModal] = useState(false);
+    const [openTaskModal, setOpenTaskModal] = useState(false);
+
     const [filter, setFilter] = useState<TaskStatus | "all">("all");
     const { search } = useSearch();
 
     useEffect(()=>{
+        // eslint-disable-next-line react-hooks/immutability
         fetchData();
     },[]);
 
@@ -60,6 +66,33 @@ export default function Project() {
             }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadProjects = async () => {
+        try {
+            const response = await getProjects();
+            const newProjects = response.data;
+            setProjects(newProjects);
+
+            if (selectedProject) {
+                const updatedProject =
+                    newProjects.find(
+                        (project: Project) =>
+                            project.id ===
+                            selectedProject.id
+                    );
+                if (updatedProject) {
+                    setSelectedProject(
+                        updatedProject
+                    );
+                }
+            }
+        } catch (error) {
+            console.error(
+                "Gagal mengambil project:",
+                error
+            );
         }
     };
 
@@ -133,7 +166,10 @@ export default function Project() {
                 </div>
 
                 <Button
-                    // onClick={() => setOpenModal(true)}
+                    onClick={() => {
+                        setEditingProject(null);
+                        setOpenProjectModal(true);
+                    }}
                     className="h-11 flex-none px-5 py-2"
                 >
                     <Plus size={18} />
@@ -150,9 +186,18 @@ export default function Project() {
                                     key={project.id}
                                     id={project.id}
                                     name={project.name}
-                                    description={project.description}
-                                    active={selectedProject?.id === project.id}
-                                    onClick={() => loadTasks(project)}
+                                    description={project.description || "Tidak ada deskripsi project."}
+                                    active={
+                                        selectedProject?.id === project.id
+                                    }
+                                    onClick={() =>
+                                        loadTasks(project)
+                                    }
+                                    onEdit={() => {
+                                        setEditingProject(project);
+                                        setOpenProjectModal(true);
+                                    }}
+                                    loadData={loadProjects}
                                 />
                             ))
                         }
@@ -194,7 +239,9 @@ export default function Project() {
                             </div>
 
                             <Button
-                                onClick={() => setOpenModal(true)}
+                                onClick={() => {
+                                    setOpenTaskModal(true);
+                                }}
                                 className="h-11 flex-none px-5 py-2"
                             >
                                 <Plus size={18} />
@@ -221,7 +268,7 @@ export default function Project() {
                                                 key as TaskStatus | "all"
                                             )
                                         }
-                                        className={`rounded-full border px-5 py-2 text-sm font-medium transition-all ${
+                                        className={`rounded-full border px-5 py-2 text-sm font-medium cursor-pointer transition-all ${
                                             filter === key
                                                 ? "border-blue-600 bg-blue-600 text-white"
                                                 : "border-slate-300 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50"
@@ -248,7 +295,7 @@ export default function Project() {
                                         loadData={loadData}
                                         onEdit={(task: Task) => {
                                             setSelectedTask(task);
-                                            setOpenModal(true);
+                                            setOpenTaskModal(true);
                                         }}
                                     />
                                 ))
@@ -269,7 +316,7 @@ export default function Project() {
                                     <div className="mt-6 flex justify-center">
                                         <Button
                                             onClick={() =>
-                                                setOpenModal(true)
+                                                setOpenTaskModal(true)
                                             }
                                             className="w-auto px-6"
                                         >
@@ -283,11 +330,11 @@ export default function Project() {
 
                         {/* Modal */}
                         <TaskModal
-                            open={openModal}
+                            open={openTaskModal}
                             projectId={selectedProject.id}
                             task={selectedTask}
                             onClose={() => {
-                                setOpenModal(false);
+                                setOpenTaskModal(false);
                                 setSelectedTask(null);
                             }}
                             loadData={() =>
@@ -297,6 +344,17 @@ export default function Project() {
                     </>
                 )
             }
+
+            {/* Project Modal */}
+            <ProjectModal
+                open={openProjectModal}
+                project={editingProject}
+                onClose={() => {
+                    setOpenProjectModal(false);
+                    setEditingProject(null);
+                }}
+                loadData={loadProjects}
+            />
         </>
     )
 }

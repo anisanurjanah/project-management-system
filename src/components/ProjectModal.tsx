@@ -3,36 +3,39 @@
 import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import {
-    useEffect,
     useRef,
+    useEffect,
 } from "react";
 
 import {
-    createTask,
-    updateTask,
+    createProject,
+    updateProject,
 } from "@/src/services/project";
 
-interface TaskModalProps {
+interface Project {
+    id: number;
+    name: string;
+    description: string | null;
+}
+
+interface ProjectModalProps {
     open: boolean;
-    projectId: number;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    task?: any;
+    project?: Project | null;
     onClose: () => void;
-    loadData: () => void;
+    loadData: () => Promise<void>;
 }
 
 interface FormData {
-    title: string;
+    name: string;
     description: string;
 }
 
-export default function TaskModal({
+export default function ProjectModal({
     open,
-    projectId,
-    task,
+    project,
     onClose,
     loadData,
-}: TaskModalProps) {
+}: ProjectModalProps) {
     const modalRef =
         useRef<HTMLDivElement>(null);
 
@@ -47,40 +50,32 @@ export default function TaskModal({
     } = useForm<FormData>();
 
     useEffect(() => {
-        if (task) {
+        if (!open) return;
+
+        if (project) {
             reset({
-                title: task.title,
-                description: task.description,
+                name: project.name,
+                description: project.description ?? "",
             });
         } else {
             reset({
-                title: "",
+                name: "",
                 description: "",
             });
         }
-    }, [task, reset]);
 
-    useEffect(() => {
-        const handleEsc = (
-            e: KeyboardEvent
-        ) => {
+        const handleEsc = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 onClose();
             }
         };
 
-        document.addEventListener(
-            "keydown",
-            handleEsc
-        );
+        document.addEventListener("keydown", handleEsc);
 
         return () => {
-            document.removeEventListener(
-                "keydown",
-                handleEsc
-            );
+            document.removeEventListener("keydown", handleEsc);
         };
-    }, [onClose]);
+    }, [open, project, reset, onClose]);
 
     if (!open) return null;
 
@@ -88,21 +83,20 @@ export default function TaskModal({
         data: FormData
     ) => {
         try {
-            if (task) {
-                await updateTask(
-                    task.id,
+            if (project) {
+                await updateProject(
+                    project.id,
                     data
                 );
             } else {
-                await createTask(
-                    projectId,
+                await createProject(
                     data
                 );
             }
 
             reset();
             onClose();
-            loadData();
+            await loadData();
         } catch (error) {
             console.error(error);
         }
@@ -124,21 +118,22 @@ export default function TaskModal({
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
                     <div>
                         <h2 className="text-xl font-semibold text-slate-800">
-                            {task
-                                ? "Edit Task"
-                                : "Tambah Task"}
+                            {project
+                                ? "Edit Projek"
+                                : "Tambah Projek"}
                         </h2>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            {task
-                                ? "Perbarui informasi task."
-                                : "Tambahkan task baru ke dalam project."}
+                            {project
+                                ? "Perbarui informasi projek."
+                                : "Tambahkan projek baru."}
                         </p>
                     </div>
 
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="rounded-lg p-2 text-slate-500 cursor-pointer transition hover:bg-slate-100 hover:text-slate-700"
+                        className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
                     >
                         <X size={20} />
                     </button>
@@ -153,26 +148,30 @@ export default function TaskModal({
                 >
                     <div>
                         <label className="mb-2 block text-sm font-medium text-slate-700">
-                            Judul Task
+                            Judul Projek
                         </label>
 
                         <input
-                            {...register(
-                                "title",
-                                {
-                                    required:
-                                        "Judul wajib diisi",
-                                }
-                            )}
-                            placeholder="Contoh: Implementasi Login API"
+                            {...register("name", {
+                                required: "Nama projek wajib diisi",
+                                minLength: {
+                                    value: 3,
+                                    message: "Nama projek minimal 3 karakter",
+                                },
+                                maxLength: {
+                                    value: 100,
+                                    message: "Nama projek maksimal 100 karakter",
+                                },
+                            })}
+                            placeholder="Contoh: Sistem Presensi"
                             className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         />
 
-                        {errors.title && (
+                        {errors.name && (
                             <p className="mt-2 text-sm text-red-500">
                                 {
                                     errors
-                                        .title
+                                        .name
                                         .message
                                 }
                             </p>
@@ -189,7 +188,7 @@ export default function TaskModal({
                             {...register(
                                 "description"
                             )}
-                            placeholder="Tuliskan deskripsi task..."
+                            placeholder="Tuliskan deskripsi projek..."
                             className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         />
                     </div>
@@ -213,9 +212,9 @@ export default function TaskModal({
                         >
                             {isSubmitting
                                 ? "Menyimpan..."
-                                : task
+                                : project
                                 ? "Simpan Perubahan"
-                                : "Simpan Task"}
+                                : "Simpan Projek"}
                         </button>
                     </div>
                 </form>

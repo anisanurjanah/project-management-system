@@ -1,7 +1,18 @@
-import { useState } from "react";
-import { deleteTask, updateTaskStatus } from "@/src/services/project";
+"use client";
 
-import StatusBadge from "./StatusBadge"
+import { useEffect, useRef, useState } from "react";
+import {
+    Pencil,
+    Trash2,
+    ChevronDown,
+} from "lucide-react";
+
+import {
+    deleteTask,
+    updateTaskStatus,
+} from "@/src/services/project";
+
+import StatusBadge from "./StatusBadge";
 
 type Status = "todo" | "progress" | "done";
 
@@ -25,12 +36,37 @@ export default function TaskCard({
 }: Props) {
     const [openStatus, setOpenStatus] = useState(false);
 
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node)
+            ) {
+                setOpenStatus(false);
+            }
+        };
+
+        document.addEventListener(
+            "mousedown",
+            handleClickOutside
+        );
+
+        return () => {
+            document.removeEventListener(
+                "mousedown",
+                handleClickOutside
+            );
+        };
+    }, []);
+
     const handleDelete = async () => {
-        const confirmMessage = confirm(
+        const confirmed = confirm(
             "Yakin ingin menghapus task ini?"
         );
 
-        if (!confirmMessage) return;
+        if (!confirmed) return;
 
         try {
             await deleteTask(task.id);
@@ -40,12 +76,11 @@ export default function TaskCard({
         }
     };
 
-    const handleChangeStatus = async (status: string) => {
+    const handleChangeStatus = async (
+        status: Status
+    ) => {
         try {
-            await updateTaskStatus(
-                task.id,
-                status
-            );
+            await updateTaskStatus(task.id, status);
             setOpenStatus(false);
             loadData();
         } catch (error) {
@@ -53,84 +88,95 @@ export default function TaskCard({
         }
     };
 
-    return(
-        <div
-            className="rounded-xl bg-white p-5 shadow"
-        >
-            <div
-                className="flex justify-between"
-            >
-                <h2
-                    className="font-semibold"
+    const statuses: Status[] = [
+        "todo",
+        "progress",
+        "done",
+    ];
+
+    return (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                    <h3 className="line-clamp-1 text-lg font-semibold text-slate-800">
+                        {task.title}
+                    </h3>
+
+                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-500">
+                        {task.description ||
+                            "Tidak ada deskripsi."}
+                    </p>
+                </div>
+
+                <div
+                    className="relative"
+                    ref={dropdownRef}
                 >
-                    {task.title}
-                </h2>
-                <div className="relative">
-                    <StatusBadge
-                        status={task.status}
+                    <button
+                        type="button"
                         onClick={() =>
                             setOpenStatus(!openStatus)
                         }
-                    />
+                        className="flex items-center gap-1"
+                    >
+                        <StatusBadge
+                            status={task.status}
+                        />
 
-                    {
-                        openStatus && (
-                            <div className="absolute right-0 mt-2 w-36 rounded-lg border bg-white shadow-lg">
-                                <button
-                                    onClick={() =>
-                                        handleChangeStatus("todo")
-                                    }
-                                    className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                                >
-                                    Todo
-                                </button>
+                        <ChevronDown
+                            size={16}
+                            className={`transition-transform ${
+                                openStatus
+                                    ? "rotate-180"
+                                    : ""
+                            }`}
+                        />
+                    </button>
 
-                                <button
-                                    onClick={() =>
-                                        handleChangeStatus("progress")
-                                    }
-                                    className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                                >
-                                    Progress
-                                </button>
-
-                                <button
-                                    onClick={() =>
-                                        handleChangeStatus("done")
-                                    }
-                                    className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                                >
-                                    Done
-                                </button>
-                            </div>
-                        )
-                    }
+                    {openStatus && (
+                        <div className="absolute right-0 z-20 mt-2 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                            {statuses
+                                .filter(
+                                    (status) =>
+                                        status !== task.status
+                                )
+                                .map((status) => (
+                                    <button
+                                        key={status}
+                                        onClick={() =>
+                                            handleChangeStatus(
+                                                status
+                                            )
+                                        }
+                                        className="block w-full px-4 py-3 text-left text-sm capitalize cursor-pointer transition hover:bg-slate-100"
+                                    >
+                                        {status}
+                                    </button>
+                                ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <p
-                className="mt-3 text-gray-500"
-            >
-                {task.description}
-            </p>
-
-            <div
-                className="flex gap-2"
-            >
+            {/* Footer */}
+            <div className="mt-5 flex items-center gap-3 border-t border-slate-200 pt-4">
                 <button
                     onClick={() => onEdit(task)}
-                    className="rounded bg-blue-600 px-3 py-1 text-white"
+                    className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 cursor-pointer transition hover:bg-blue-50"
                 >
+                    <Pencil size={16} />
                     Edit
                 </button>
 
                 <button
                     onClick={handleDelete}
-                    className="text-red-500"
+                    className="flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 cursor-pointer transition hover:bg-red-50"
                 >
+                    <Trash2 size={16} />
                     Delete
                 </button>
             </div>
         </div>
-    )
+    );
 }

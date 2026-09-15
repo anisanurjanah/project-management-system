@@ -1,4 +1,11 @@
-import React, { forwardRef } from "react";
+"use client";
+
+import React, {
+    forwardRef,
+    useId,
+} from "react";
+
+import { AlertCircle } from "lucide-react";
 
 interface Props
     extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -7,27 +14,64 @@ interface Props
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
-    ({ label, error, ...props }, ref) => {
+    (
+        {
+            label,
+            error,
+            required,
+            className = "",
+            ...props
+        },
+        ref
+    ) => {
+        const id = useId();
+
         return (
             <div className="space-y-2">
-                <label className="text-sm font-medium text-black">
+                <label
+                    htmlFor={id}
+                    className="block text-sm font-medium text-slate-700"
+                >
                     {label}
+
+                    {required && (
+                        <span className="ml-1 text-red-500">
+                            *
+                        </span>
+                    )}
                 </label>
 
                 <input
+                    id={id}
                     ref={ref}
                     {...props}
-                    className={`w-full rounded-lg border px-4 py-2 text-black outline-none ${
-                        error
-                            ? "border-red-500"
-                            : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                    }`}
+                    className={`
+                        w-full rounded-xl border bg-white
+                        px-4 py-3
+                        text-sm text-slate-800
+                        placeholder:text-slate-400
+                        outline-none
+                        transition-all duration-200
+
+                        ${
+                            error
+                                ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+                                : "border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                        }
+
+                        disabled:cursor-not-allowed
+                        disabled:bg-slate-100
+                        disabled:text-slate-400
+
+                        ${className}
+                    `}
                 />
 
                 {error && (
-                    <small className="text-red-500">
-                        {error}
-                    </small>
+                    <div className="flex items-center gap-2 text-sm text-red-500">
+                        <AlertCircle size={16} />
+                        <span>{error}</span>
+                    </div>
                 )}
             </div>
         );

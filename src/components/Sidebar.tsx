@@ -1,45 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { Home, FolderKanban, User } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { FolderKanban } from "lucide-react";
+
 import LogoutButton from "./LogoutButton";
 
+const menus = [
+    {
+        name: "Projects",
+        href: "/projects",
+        icon: FolderKanban,
+    },
+];
+
 export default function Sidebar() {
+    const pathname = usePathname();
+
     return (
-        <aside className="w-64 bg-white shadow-md">
-            <div className="border-b p-6">
+        <aside className="sticky top-0 flex h-screen w-72 flex-col border-r bg-white">
+            {/* Logo */}
+            <div className="border-b p-7">
                 <h1 className="text-2xl font-bold text-blue-600">
-                    TaskFlow
+                    Project Management System
                 </h1>
             </div>
 
-            <nav className="space-y-2 p-5">
-                <Link
-                    href="/dashboard"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-blue-50"
-                >
-                    <Home size={18} />
-                    Dashboard
-                </Link>
+            {/* Menu */}
+            <nav className="flex-1 overflow-y-auto space-y-2 p-5">
+                {menus.map((menu) => {
+                    const active =
+                        pathname === menu.href;
 
-                <Link
-                    href="/projects"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-blue-50"
-                >
-                    <FolderKanban size={18} />
-                    Projects
-                </Link>
-
-                <Link
-                    href="/profile"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 hover:bg-blue-50"
-                >
-                    <User size={18} />
-                    Profile
-                </Link>
+                    return (
+                        <Link
+                            key={menu.href}
+                            href={menu.href}
+                            className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all
+                            ${
+                                active
+                                ? "bg-blue-600 text-white shadow-md"
+                                : "text-gray-600 hover:bg-gray-100"
+                            }`}
+                        >
+                            <menu.icon size={19} />
+                            {menu.name}
+                        </Link>
+                    );
+                })}
             </nav>
 
-            <div className="absolute bottom-5 left-5">
+            {/* Footer */}
+            <div className="border-t p-5">
                 <LogoutButton />
             </div>
         </aside>

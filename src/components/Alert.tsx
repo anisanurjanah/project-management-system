@@ -48,7 +48,6 @@ export default function Alert({
             className={`flex items-center gap-3 rounded-lg border-l-4 p-4 ${style.bg} ${style.border} ${style.text}`}
         >
             {style.icon}
-
             <p className="text-sm font-medium">
                 {message}
             </p>
